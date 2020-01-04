@@ -1,0 +1,58 @@
+import asyncio
+
+import aiohttp
+import getpass
+
+from fpl import FPL
+
+async def main():
+    async with aiohttp.ClientSession() as session:
+
+        fpl = FPL(session)
+
+        email = input("Enter your email address: ")
+
+        password = getpass.getpass(prompt="Enter your password: ")
+
+        user_id = input("Enter your user ID: ")
+        # user_id can be obtained from the URL for previous gameweek history, my user ID = 2243886
+
+        await fpl.login(email, password)
+        user = await fpl.get_user(user_id)
+        my_team = await user.get_team()
+
+        my_player_ids = [d['element'] for d in my_team]
+        await printSortedVAPM(fpl, my_player_ids)
+
+        player_id = int(input("Enter the player ID you would like alternatives for:"))
+        await get_alternatives(fpl, player_id)
+
+async def get_alternatives(fpl, player_id):
+
+    current_player = await fpl.get_player(player_id)
+    print("Getting alternatives for player: ", current_player)
+    players = await fpl.get_players()
+    alternatives = [p for p in players if p.element_type == current_player.element_type]
+
+    additional_funds = int(input("Do you have any additional funds? "))
+    alternatives = [p for p in alternatives if p.now_cost <= current_player.now_cost + additional_funds]
+
+    alternatives_ids = [player.id for player in alternatives]
+    await printSortedVAPM(fpl, alternatives_ids)
+
+
+async def printSortedVAPM(fpl, player_ids):
+    players = await fpl.get_players(player_ids)
+
+    player_value_dict = {}
+    for player_id in player_ids:
+        player = await fpl.get_player(player_id)
+        vapm = await player.vapm
+        player_value_dict[player_id] = vapm * (player.now_cost / 10)
+
+    print("Value added per £1m (lowest to highest)")
+    for key, value in sorted(player_value_dict.items(), key=lambda item: item[1]):
+        player = await fpl.get_player(key)
+        print("%s - %s: £%.2f million" % (key, player, value))
+
+asyncio.run(main())
