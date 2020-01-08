@@ -48,11 +48,15 @@ async def printSortedVAPM(fpl, player_ids):
     for player_id in player_ids:
         player = await fpl.get_player(player_id)
         vapm = await player.vapm
-        player_value_dict[player_id] = vapm * (player.now_cost / 10)
+        player_value_dict[player_id] = vapm
 
+    sum = 0
     print("Value added per £1m (lowest to highest)")
     for key, value in sorted(player_value_dict.items(), key=lambda item: item[1]):
         player = await fpl.get_player(key)
-        print("%s - %s: £%.2f million" % (key, player, value))
+        print("%s - %s: %s" % (key, player, value))
+        sum += value
+
+    print("Sum total: %s" % sum)
 
 asyncio.run(main())
