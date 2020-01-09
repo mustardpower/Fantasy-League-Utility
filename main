@@ -24,8 +24,24 @@ async def main():
         my_player_ids = [d['element'] for d in my_team]
         await printSortedVAPM(fpl, my_player_ids)
 
-        player_id = int(input("Enter the player ID you would like alternatives for:"))
-        await get_alternatives(fpl, player_id)
+        exit = False
+        while exit is False:
+            printMenu()
+            choice = input("Enter your choice [1-4]: ")
+
+            if choice == '1':
+                player_id = int(input("Enter the player ID you would like alternatives for:"))
+                await get_alternatives(fpl, player_id)
+            elif choice =='2':
+                exit = True
+            else:
+                # Any inputs other than values 1-4 we print an error message
+                input("Wrong menu selection. Enter any key to try again..")
+
+def printMenu():
+    print(30 * "-", "TOOLS MENU", 30 * "-")
+    print("1. Find player alternatives ")
+    print("2. Exit ")
 
 async def get_alternatives(fpl, player_id):
 
