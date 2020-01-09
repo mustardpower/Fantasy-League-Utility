@@ -21,18 +21,17 @@ async def main():
         user = await fpl.get_user(user_id)
         my_team = await user.get_team()
 
-        my_player_ids = [d['element'] for d in my_team]
-        await printSortedVAPM(fpl, my_player_ids)
-
         exit = False
         while exit is False:
             printMenu()
             choice = input("Enter your choice [1-4]: ")
-
             if choice == '1':
+                my_player_ids = [d['element'] for d in my_team]
+                await printSortedVAPM(fpl, my_player_ids)
+            elif choice == '2':
                 player_id = int(input("Enter the player ID you would like alternatives for:"))
                 await get_alternatives(fpl, player_id)
-            elif choice =='2':
+            elif choice =='3':
                 exit = True
             else:
                 # Any inputs other than values 1-4 we print an error message
@@ -40,8 +39,9 @@ async def main():
 
 def printMenu():
     print(30 * "-", "TOOLS MENU", 30 * "-")
-    print("1. Find player alternatives ")
-    print("2. Exit ")
+    print("1. Show VAPM of current players ")
+    print("2. Find player alternatives ")
+    print("3. Exit ")
 
 async def get_alternatives(fpl, player_id):
 
