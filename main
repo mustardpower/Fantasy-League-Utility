@@ -36,7 +36,8 @@ async def main():
             elif choice == '3':
                 my_player_ids = [d['element'] for d in my_team]
                 minimum_minutes = int(input("How many minutes do you require the alternative players to have played? "))
-                await findBestAlternatives(fpl, my_player_ids, minimum_minutes)
+                additional_funds = int(input("Do you have any additional funds? "))
+                await findBestAlternatives(fpl, my_player_ids, additional_funds, minimum_minutes)
             elif choice =='4':
                 exit = True
             else:
@@ -63,12 +64,12 @@ async def get_alternatives(fpl, player_id, additional_funds, minimum_minutes):
     alternatives_ids = [player.id for player in alternatives]
     return alternatives_ids
 
-async def findBestAlternatives(fpl, player_ids, minimum_minutes):
+async def findBestAlternatives(fpl, player_ids, additional_funds, minimum_minutes):
     #Go through each player and get alternatives then sort the whole list based on the difference in vapm
 
     alternatives_with_higher_vapm = []
     for player_id in player_ids:
-        alternatives_ids = await get_alternatives(fpl, player_id, 0, minimum_minutes)
+        alternatives_ids = await get_alternatives(fpl, player_id, additional_funds, minimum_minutes)
         player = await fpl.get_player(player_id)
         player_vapm = await player.vapm
         for alternatives_id in alternatives_ids:
@@ -92,7 +93,8 @@ async def findBestAlternatives(fpl, player_ids, minimum_minutes):
     for key, value in sorted(player_value_dict.items(), key=lambda item: item[1]):
         player = await fpl.get_player(key[0])
         alternative = await fpl.get_player(key[1])
-        print("Out: %s In: %s VAPM difference: %s" % (player, alternative, value))
+        price_difference = (alternative.now_cost - player.now_cost) / 10
+        print("Out: %s In: %s VAPM difference: %s Price difference: £%sm" % (player, alternative, value, price_difference))
 
 
 async def printSortedVAPM(fpl, player_ids):
