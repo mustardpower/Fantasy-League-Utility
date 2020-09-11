@@ -15,7 +15,7 @@ async def main():
         password = getpass.getpass(prompt="Enter your password: ")
 
         user_id = input("Enter your user ID: ")
-        # user_id can be obtained from the URL for previous gameweek history, my user ID = 2243886
+        # user_id can be obtained from the URL for previous gameweek history, my user ID = 43194
 
         await fpl.login(email, password)
         user = await fpl.get_user(user_id)
