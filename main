@@ -47,6 +47,8 @@ async def main():
                 additional_funds = int(input("Do you have any additional funds? "))
                 await findBestAlternatives(fpl, my_player_ids, additional_funds, minimum_minutes)
             elif choice =='4':
+                await getFixtureDifficulty(fpl)
+            elif choice =='5':
                 exit = True
             else:
                 # Any inputs other than values 1-4 we print an error message
@@ -57,7 +59,33 @@ def printMenu():
     print("1. Show VAPM of team ")
     print("2. Find player alternatives ")
     print("3. Find best alternatives ")
-    print("4. Exit ")
+    print("4. Get team fixture difficulty")
+    print("5. Exit ")
+
+async def fixtureDifficultyForTeam(fpl, gameweek, team):
+    fixtures = await fpl.get_fixtures_by_gameweek(gameweek)
+    team_fixture = next((fixture for fixture in fixtures if fixture.team_h == team.id or fixture.team_a == team.id), None)
+    if team_fixture is None:
+       return ("%s: No fixture" %(team.name))
+    else:
+        if team_fixture.team_h == team.id:
+            return team_fixture.team_h_difficulty
+        else:
+            return team_fixture.team_a_difficulty
+
+async def getFixtureDifficulty(fpl):
+    teams = await fpl.get_teams()
+    print("Fixture difficulty")
+
+    current_gameweek = fpl.current_gameweek
+    next_gameweek = current_gameweek + 1
+    next_next_gameweek = current_gameweek + 2
+    for team in teams:
+        fixture_difficulty = await fixtureDifficultyForTeam(fpl, current_gameweek, team)
+        next_difficulty = await fixtureDifficultyForTeam(fpl, next_gameweek, team)
+        next_next_difficulty = await fixtureDifficultyForTeam(fpl, next_next_gameweek, team)
+
+        print("%s: difficulty: %s %s %s" %(team.name, fixture_difficulty, next_difficulty, next_next_difficulty))
 
 async def get_alternatives(fpl, player_id, additional_funds, minimum_minutes):
 
@@ -73,8 +101,8 @@ async def get_alternatives(fpl, player_id, additional_funds, minimum_minutes):
     return alternatives_ids
 
 async def findBestAlternatives(fpl, player_ids, additional_funds, minimum_minutes):
-    #Go through each player and get alternatives then sort the whole list based on the difference in vapm
 
+    #Go through each player and get alternatives then sort the whole list based on the difference in vapm
     alternatives_with_higher_vapm = []
     for player_id in player_ids:
         alternatives_ids = await get_alternatives(fpl, player_id, additional_funds, minimum_minutes)
