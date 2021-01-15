@@ -22,8 +22,8 @@ async def main():
         user_id = os.environ.get('FPL_USER_ID', None)
         if user_id is None:
             user_id = input("Enter your user ID: ")
-        else:
-            user_id = int(user_id)
+
+        user_id = int(user_id)
 
 
         await fpl.login(email, password)
