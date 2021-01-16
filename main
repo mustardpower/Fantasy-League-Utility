@@ -23,9 +23,6 @@ async def main():
         if user_id is None:
             user_id = input("Enter your user ID: ")
 
-        user_id = int(user_id)
-
-
         await fpl.login(email, password)
         user = await fpl.get_user(user_id)
         my_team = await user.get_team()
@@ -72,14 +69,26 @@ def printMenu():
 
 async def fixtureDifficultyForTeam(fpl, gameweek, team):
     fixtures = await fpl.get_fixtures_by_gameweek(gameweek)
-    team_fixture = next((fixture for fixture in fixtures if fixture.team_h == team.id or fixture.team_a == team.id), None)
-    if team_fixture is None:
-       return ("%s: No fixture" %(team.name))
+    team_fixtures = [fixture for fixture in fixtures if fixture.team_h == team.id or fixture.team_a == team.id]
+    if not team_fixtures:
+       return ("(None)")
     else:
-        if team_fixture.team_h == team.id:
-            return team_fixture.team_h_difficulty
-        else:
-            return team_fixture.team_a_difficulty
+        team_count = 0
+        result = "("
+        for team_fixture in team_fixtures:
+            team_count = team_count + 1
+            if team_fixture.team_h == team.id:
+                difficulty = str(team_fixture.team_h_difficulty)
+            else:
+                difficulty = str(team_fixture.team_a_difficulty)
+
+            if len(result) == 1:
+                result += difficulty
+            else:
+                result += "," + difficulty
+
+        result += ")"
+        return result
 
 async def getFixtureDifficulty(fpl):
     teams = await fpl.get_teams()
@@ -88,12 +97,13 @@ async def getFixtureDifficulty(fpl):
     current_gameweek = fpl.current_gameweek
     next_gameweek = current_gameweek + 1
     next_next_gameweek = current_gameweek + 2
+    next_next_next_gameweek = current_gameweek + 3
     for team in teams:
-        fixture_difficulty = await fixtureDifficultyForTeam(fpl, current_gameweek, team)
         next_difficulty = await fixtureDifficultyForTeam(fpl, next_gameweek, team)
         next_next_difficulty = await fixtureDifficultyForTeam(fpl, next_next_gameweek, team)
+        next_next_next_difficulty = await fixtureDifficultyForTeam(fpl, next_next_next_gameweek, team)
 
-        print("%s: difficulty: %s %s %s" %(team.name, fixture_difficulty, next_difficulty, next_next_difficulty))
+        print("%s: difficulty: %s %s %s" %(team.name, next_difficulty, next_next_difficulty, next_next_next_difficulty))
 
 async def get_alternatives(fpl, player_id, additional_funds, minimum_minutes):
 
